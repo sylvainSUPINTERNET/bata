@@ -1,12 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Post } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
 
 import { AppService } from './app.service';
 import { isIsoDurationOver } from './utils';
+import { YtDlpService } from './ytDlp.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly ytDlpService: YtDlpService,
+  ) {}
 
   @Post('ytb-webhook')
   async ytbWebhook(@Body() xml: string) {
