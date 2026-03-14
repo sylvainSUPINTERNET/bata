@@ -1,10 +1,13 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Post } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
 
 import { AppService } from './app.service';
 import { isIsoDurationOver } from './utils';
 import { YtDlpService } from './ytDlp.service';
 import { FfmpegService } from './ffmpeg.service';
+import { randomUUID } from 'node:crypto';
+import { AssemblyAiService } from './assemblyAi.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class AppController {
@@ -12,11 +15,14 @@ export class AppController {
     private readonly appService: AppService,
     private readonly ytDlpService: YtDlpService,
     private readonly ffmpegService: FfmpegService,
+    private readonly assemblyAiService: AssemblyAiService,
+    private configService: ConfigService,
   ) {}
 
   @Post('ytb-webhook')
   async ytbWebhook(@Body() xml: string) {
-    const apiKey = process.env.YOUTUBE_API_KEY as string;
+    const apiKey = this.configService.get<string>('YOUTUBE_API_KEY');
+    const VIDEO_DEV = this.configService.get<string>('VIDEO_DEV');
     const VIDEO_LESS_THAN_MINUTES = 15; // 15 minutes
 
     const p = await parseStringPromise(xml);
@@ -55,17 +61,36 @@ export class AppController {
       }
 
       if (acceptVideo) {
-        console.log('New video uploaded:');
-        console.log(
-          'Title:',
-          latestVideos[0].title[0],
-          'URL:',
-          latestVideos[0].link[0].$.href,
-          'Published:',
-          latestVideos[0].published[0],
-          'Id',
-          latestVideos[0],
+        // console.log(
+        //   'Title:',
+        //   latestVideos[0].title[0],
+        //   'URL:',
+        //   latestVideos[0].link[0].$.href,
+        //   'Published:',
+        //   latestVideos[0].published[0],
+        //   'Id',
+        //   latestVideos[0],
+        // );
+
+        let videoNameLocal: string;
+        const extension: string = 'webm';
+        if (`${VIDEO_DEV}` === '') {
+          videoNameLocal = `${latestVideos[0]['yt:videoId'][0]}@${randomUUID()}`;
+          this.ytDlpService.ytDlpDownload(
+            latestVideos[0].link[0].$.href,
+            videoNameLocal,
+          );
+        } else {
+          videoNameLocal = `${VIDEO_DEV}`;
+          Logger.warn(
+            `Using video from env VIDEO_DEV: ${videoNameLocal}. This is for development purposes only, and should not be used in production!`,
+          );
+        }
+
+        const transcription = await this.assemblyAiService.transcribe(
+          `${videoNameLocal}.${extension}`,
         );
+        Logger.log(`${JSON.stringify(transcription)}`);
       }
     }
     return p;

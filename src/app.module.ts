@@ -4,10 +4,15 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { YtDlpService } from './ytDlp.service';
 import { FfmpegService } from './ffmpeg.service';
+import { AssemblyAiService } from './assemblyAi.service';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+  ],
   controllers: [AppController],
-  providers: [AppService, YtDlpService, FfmpegService],
+  providers: [AppService, YtDlpService, FfmpegService, AssemblyAiService],
 })
 export class AppModule {}

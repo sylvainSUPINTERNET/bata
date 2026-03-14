@@ -5,10 +5,10 @@ import { spawn } from 'node:child_process';
 export class YtDlpService {
   constructor() {}
 
-  ytDlpHelp() {
-    const ytDlp = spawn('yt-dlp', ['--help']);
+  ytDlpDownload(url: string, videoNameLocal: string) {
+    const ytDlp = spawn('yt-dlp', [url, '-o', `${videoNameLocal}.%(ext)s`]);
     ytDlp.stdout.on('data', (data) => {
-      console.log(`yt-dlp help: ${data}`);
+      Logger.log(`yt-dlp output: ${data}`);
     });
     ytDlp.stderr.on('data', (data) => {
       Logger.error(`yt-dlp error: ${data}`);
