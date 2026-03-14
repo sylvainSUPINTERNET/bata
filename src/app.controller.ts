@@ -8,6 +8,7 @@ import { FfmpegService } from './ffmpeg.service';
 import { randomUUID } from 'node:crypto';
 import { AssemblyAiService } from './assemblyAi.service';
 import { ConfigService } from '@nestjs/config';
+import { AnthropicService } from './anthropic.service';
 
 @Controller()
 export class AppController {
@@ -17,6 +18,7 @@ export class AppController {
     private readonly ffmpegService: FfmpegService,
     private readonly assemblyAiService: AssemblyAiService,
     private configService: ConfigService,
+    private readonly anthropicService: AnthropicService,
   ) {}
 
   @Post('ytb-webhook')
@@ -91,6 +93,11 @@ export class AppController {
           `${videoNameLocal}.${extension}`,
         );
         Logger.log(`${JSON.stringify(transcription)}`);
+
+        const result = await this.anthropicService.getResponse(
+          `${transcription.text}`,
+        );
+        Logger.log(`Anthropic response: ${result}`);
       }
     }
     return p;

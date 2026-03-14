@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { YtDlpService } from './ytDlp.service';
 import { FfmpegService } from './ffmpeg.service';
 import { AssemblyAiService } from './assemblyAi.service';
+import { AnthropicService } from './anthropic.service';
 
 @Module({
   imports: [
@@ -13,6 +14,12 @@ import { AssemblyAiService } from './assemblyAi.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, YtDlpService, FfmpegService, AssemblyAiService],
+  providers: [
+    AppService,
+    YtDlpService,
+    FfmpegService,
+    AssemblyAiService,
+    AnthropicService,
+  ],
 })
 export class AppModule {}
