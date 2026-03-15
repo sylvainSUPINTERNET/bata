@@ -6,6 +6,7 @@ import { YtDlpService } from './ytDlp.service';
 import { FfmpegService } from './ffmpeg.service';
 import { AssemblyAiService } from './assemblyAi.service';
 import { AnthropicService } from './anthropic.service';
+import { YtService } from './yt.service';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AnthropicService } from './anthropic.service';
     FfmpegService,
     AssemblyAiService,
     AnthropicService,
+    YtService
   ],
 })
 export class AppModule {}

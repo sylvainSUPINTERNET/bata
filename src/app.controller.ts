@@ -10,6 +10,7 @@ import { AssemblyAiService } from './assemblyAi.service';
 import { ConfigService } from '@nestjs/config';
 import { AnthropicService } from './anthropic.service';
 import fs from 'node:fs';
+import { YtService } from './yt.service';
 
 @Controller()
 export class AppController {
@@ -20,6 +21,7 @@ export class AppController {
     private readonly assemblyAiService: AssemblyAiService,
     private configService: ConfigService,
     private readonly anthropicService: AnthropicService,
+    private readonly ytService: YtService
   ) {}
 
   @Post('ytb-webhook')
@@ -29,6 +31,9 @@ export class AppController {
     const VIDEO_LESS_THAN_MINUTES = 20; // 15 minutes
     const ASSEMBLY_AI_DEV = this.configService.get<string>('ASSEMBLY_AI_DEV');
     const ANTHROPIC_DEV = this.configService.get<string>('ANTHROPIC_DEV');
+
+    this.ytService.test();
+    
     
     const p = await parseStringPromise(xml);
     
