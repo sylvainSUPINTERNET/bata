@@ -26,31 +26,15 @@ export class FfmpegService {
       end_timestamp_ms:number;
     },
      index:number) {
-
     const ffmpeg = spawn('ffmpeg', [
-      '-i',
-      originalVideoFileName,
-
+            '-i',
+      `${originalVideoFileName}`,
       '-ss',
-      this.msToTime(clip.start_timestamp_ms),
-
+      `${this.msToTime(clip.start_timestamp_ms)}`,
       '-to',
-      this.msToTime(clip.end_timestamp_ms),
-
+      `${this.msToTime(clip.end_timestamp_ms)}`,
       '-vf',
-      'crop=ih*9/16:ih,scale=1080:1920',
-
-      '-c:v',
-      'libx264',
-      '-c:a',
-      'aac',
-      '-preset',
-      'fast',
-      '-crf',
-      '23',
-      '-movflags',
-      '+faststart',
-
+      'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2',
       `clip_${index}.mp4`,
     ]);
 
@@ -61,4 +45,14 @@ export class FfmpegService {
       console.error(`ffmpeg error: ${data}`);
     });
   }
+
+  // ffmpegHelp() {
+  //   const ffmpeg = spawn('ffmpeg', ['-h']);
+  //   ffmpeg.stdout.on('data', (data) => {
+  //     console.log(`ffmpeg help: ${data}`);
+  //   });
+  //   ffmpeg.stderr.on('data', (data) => {
+  //     console.error(`ffmpeg error: ${data}`);
+  //   });
+  // }
 }
