@@ -124,11 +124,15 @@ export class AppController {
 
 
         // FFMPEG - extract clips
+        let clipNames: string[] = [];
         anthropicResponseData.clips.forEach((clip: any, index:number) => {
-          this.ffmpegService.extractClips(`${videoNameLocal}.${extension}`, clip, index);
+          clipNames = [...clipNames, `clip_${index}`];
+          this.ffmpegService.extractClips(`${videoNameLocal}.${extension}`, clip, `clip_${index}`);
         });
 
 
+        // Send to youtube
+        // TODO
 
 
 

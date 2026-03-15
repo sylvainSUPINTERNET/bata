@@ -1,0 +1,40 @@
+{
+  "clips": [
+    {
+      "title": "Le dîner secret où Merkel a dicté la politique nucléaire française",
+      "hook": "Je vais vous raconter une anecdote qui remonte à mars 2011, juste après Fukushima.",
+      "closing_line": "C'est ça, l'histoire.",
+      "start_timestamp_ms": 62990,
+      "end_timestamp_ms": 137312,
+      "duration_seconds": 74,
+      "viral_score": 9,
+      "reason": "Le clip commence sur une promesse de révélation ('je vais vous raconter une anecdote') qui capte immédiatement l'attention. Il contient une scène en huis clos avec Merkel, Fillon et un témoin direct, une décision historique annoncée à table, une réplique cinématographique ('Mais Madame, la France est encore un État souverain'), et une chute narrative propre ('C'est ça, l'histoire'). Le clip est 100% autonome, compréhensible sans contexte, et se termine sur une conclusion forte. Légèrement au-dessus de 60s mais la chute naturelle justifie l'extension.",
+      "suggested_caption": "🤯 Un dîner à 4 personnes à Francfort. Merkel, Fillon, et une décision qui a changé l'avenir énergétique de la France. Ce que vous n'avez jamais entendu aux infos. 👇",
+      "hashtags": ["#France", "#Nucléaire", "#Fessenheim", "#Merkel", "#Politique", "#Révélation", "#Histoire", "#Énergie", "#Viral", "#Reels"]
+    },
+    {
+      "title": "Tu n'as pas fermé Fessenheim parce que c'était dangereux",
+      "hook": "On venait d'investir l'argent du contribuable pour prolonger la vie de la centrale. Tu le sais.",
+      "closing_line": "Et on va y revenir.",
+      "start_timestamp_ms": 328435,
+      "end_timestamp_ms": 358688,
+      "duration_seconds": 30,
+      "viral_score": 8,
+      "reason": "Le clip fonctionne comme une accusation directe répétée en marteau : 'Tu n'as pas fermé Fessenheim parce que... Tu n'as pas fermé Fessenheim parce que... Tu as fermé Fessenheim parce que Merkel voulait.' La structure anaphore est extrêmement efficace pour les Reels. Le mot 'socialo' en chute crée une rupture de ton percutante. Le clip démarre sur un reproche factuel fort et se conclut sur une promesse de suite, créant un effet de curiosité.",
+      "suggested_caption": "💥 Il ne l'a pas fermée parce que c'était dangereux. Il ne l'a pas fermée parce qu'elle vieillissait. La vraie raison est bien plus choquante. 👇 #Fessenheim #Hollande #Nucléaire",
+      "hashtags": ["#Fessenheim", "#Hollande", "#Nucléaire", "#France", "#Politique", "#Vérité", "#Énergie", "#Choc", "#Reels", "#Viral"]
+    },
+    {
+      "title": "La France est un paillasson — et voilà exactement pourquoi",
+      "hook": "C'est pour ça que la France est un tapis, c'est pour ça que la France est un paillasson.",
+      "closing_line": "Quand on est des socialistes, on sort de l'histoire.",
+      "start_timestamp_ms": 535276,
+      "end_timestamp_ms": 595227,
+      "duration_seconds": 60,
+      "viral_score": 9,
+      "reason": "Le clip s'ouvre sur une image forte et répétée ('tapis... paillasson') qui provoque une réaction immédiate. Il monte en tension avec la liste des concessions faites aux socialistes (retraite, RSA, Sécu), culmine sur la scène caricaturale de Merkel tapant du poing à la fête de la saucisse, et se termine sur une phrase conclusive à fort impact ('Quand on est des socialistes, on sort de l'histoire'). Structure narrative complète en 60s pile. Très fort en engagement — indignation, reconnaissance, débat.",
+      "suggested_caption": "🇫🇷 La France, un paillasson ? Une grosse bonne femme à moitié écolo peut taper du poing sur la table et dire 'vous me fermez votre centrale'. Et on obéit. Pourquoi ? La réponse va vous déranger. 🔥",
+      "hashtags": ["#France", "#Souveraineté", "#Nucléaire", "#Paillasson", "#Politique", "#Socialisme", "#Énergie", "#Colère", "#Frexit", "#Viral"]
+    }
+  ]
+}

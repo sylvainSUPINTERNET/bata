@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { spawn } from 'node:child_process';
 
 @Injectable()
@@ -25,7 +25,7 @@ export class FfmpegService {
       start_timestamp_ms:number;
       end_timestamp_ms:number;
     },
-     index:number) {
+     clipName:string ) {
     const ffmpeg = spawn('ffmpeg', [
             '-i',
       `${originalVideoFileName}`,
@@ -35,14 +35,14 @@ export class FfmpegService {
       `${this.msToTime(clip.end_timestamp_ms)}`,
       '-vf',
       'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2',
-      `clip_${index}.mp4`,
+      `${clipName}.mp4`,
     ]);
 
     ffmpeg.stdout.on('data', (data) => {
-      console.log(`ffmpeg output: ${data}`);
+      Logger.log(`ffmpeg output: ${data}`);
     });
     ffmpeg.stderr.on('data', (data) => {
-      console.error(`ffmpeg error: ${data}`);
+      Logger.error(`ffmpeg error: ${data}`);
     });
   }
 

@@ -1,0 +1,28 @@
+{
+  "clips": [
+    {
+      "title": "Merkel a exigé la fermeture de Fessenheim lors d'un dîner secret",
+      "start_timestamp_ms": 62990,
+      "end_timestamp_ms": 137312,
+      "duration_seconds": 74,
+      "viral_score": 9,
+      "hashtags": ["#Fessenheim", "#Merkel", "#Nucléaire", "#France", "#Politique", "#Révélation"]
+    },
+    {
+      "title": "Pourquoi la France se fait marcher dessus par l'Allemagne",
+      "start_timestamp_ms": 454616,
+      "end_timestamp_ms": 502736,
+      "duration_seconds": 48,
+      "viral_score": 8,
+      "hashtags": ["#France", "#Allemagne", "#Socialisme", "#Retraites", "#Dette", "#Politique"]
+    },
+    {
+      "title": "Vous ne pouvez pas être patriote si vous êtes socialiste",
+      "start_timestamp_ms": 613564,
+      "end_timestamp_ms": 652357,
+      "duration_seconds": 39,
+      "viral_score": 8,
+      "hashtags": ["#Patriotisme", "#Socialisme", "#France", "#Dette", "#Frexit", "#Politique"]
+    }
+  ]
+}
