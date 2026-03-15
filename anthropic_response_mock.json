@@ -1,0 +1,26 @@
+{
+    "model": "claude-opus-4-6",
+    "id": "msg_017fW4RH6Ytd2nKyJfpfcFub",
+    "type": "message",
+    "role": "assistant",
+    "content": [
+        {
+            "type": "text",
+            "text": "{\"clips\":[{\"title\":\"Merkel a exigé la fermeture de Fessenheim lors d'un dîner secret\",\"start_timestamp_ms\":62990,\"end_timestamp_ms\":125352,\"duration_seconds\":62,\"viral_score\":7,\"hashtags\":[\"#Fessenheim\",\"#Merkel\",\"#Nucléaire\",\"#France\",\"#Géopolitique\",\"#Révélation\"]},{\"title\":\"La France est un paillasson parce qu'elle est socialiste\",\"start_timestamp_ms\":534516,\"end_timestamp_ms\":571739,\"duration_seconds\":37,\"viral_score\":9,\"hashtags\":[\"#France\",\"#Socialisme\",\"#Paillasson\",\"#Frexit\",\"#Indépendance\",\"#Politique\"]},{\"title\":\"Vous ne pouvez pas être patriote si vous êtes socialiste\",\"start_timestamp_ms\":616443,\"end_timestamp_ms\":652357,\"duration_seconds\":36,\"viral_score\":8,\"hashtags\":[\"#Patriotisme\",\"#Socialisme\",\"#Retraite\",\"#SécuritéSociale\",\"#Dette\",\"#France\"]}]}"
+        }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+        "input_tokens": 62986,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 279,
+        "service_tier": "standard",
+        "inference_geo": "global"
+    }
+}

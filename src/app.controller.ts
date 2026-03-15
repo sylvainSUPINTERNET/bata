@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { AssemblyAiService } from './assemblyAi.service';
 import { ConfigService } from '@nestjs/config';
 import { AnthropicService } from './anthropic.service';
+import fs from 'node:fs';
 
 @Controller()
 export class AppController {
@@ -25,9 +26,12 @@ export class AppController {
   async ytbWebhook(@Body() xml: string) {
     const apiKey = this.configService.get<string>('YOUTUBE_API_KEY');
     const VIDEO_DEV = this.configService.get<string>('VIDEO_DEV');
-    const VIDEO_LESS_THAN_MINUTES = 15; // 15 minutes
-
+    const VIDEO_LESS_THAN_MINUTES = 20; // 15 minutes
+    const ASSEMBLY_AI_DEV = this.configService.get<string>('ASSEMBLY_AI_DEV');
+    const ANTHROPIC_DEV = this.configService.get<string>('ANTHROPIC_DEV');
+    
     const p = await parseStringPromise(xml);
+    
 
     const latestVideos = p.feed.entry
       .filter((entry) => entry.link[0].$.href.includes('/watch?v=')) // keep only video format, and from less than 1 day ago
@@ -41,6 +45,7 @@ export class AppController {
           new Date(b.published[0]).getTime() -
           new Date(a.published[0]).getTime(),
       );
+
 
     if (latestVideos.length > 0) {
       const data = await fetch(
@@ -63,17 +68,8 @@ export class AppController {
       }
 
       if (acceptVideo) {
-        // console.log(
-        //   'Title:',
-        //   latestVideos[0].title[0],
-        //   'URL:',
-        //   latestVideos[0].link[0].$.href,
-        //   'Published:',
-        //   latestVideos[0].published[0],
-        //   'Id',
-        //   latestVideos[0],
-        // );
 
+        // Download video with yt-dlp
         let videoNameLocal: string;
         const extension: string = 'webm';
         if (`${VIDEO_DEV}` === '') {
@@ -89,15 +85,58 @@ export class AppController {
           );
         }
 
-        const transcription = await this.assemblyAiService.transcribe(
-          `${videoNameLocal}.${extension}`,
-        );
-        Logger.log(`${JSON.stringify(transcription)}`);
+        // Transcribe with AssemblyAI
+        let transcription: any;
+        const transcriptionResultFileName = `transcription_result.txt`;
+        if ( `${ASSEMBLY_AI_DEV}` === '') {
+          transcription = await this.assemblyAiService.transcribe(
+            `${videoNameLocal}.${extension}`,
+          );
+          Logger.log(`${JSON.stringify(transcription)}`);
+          fs.writeFileSync(
+            transcriptionResultFileName,
+            JSON.stringify(transcription),
+          );
+        } else {
+          transcription = JSON.parse(
+            fs.readFileSync(`assembly_ai_mock.json`, 'utf-8'),
+          );
+          Logger.warn(
+            `Using transcription from env ASSEMBLY_AI_DEV. This is for development purposes only, and should not be used in production!`,
+          );
+        }
 
-        const result = await this.anthropicService.getResponse(
-          `${transcription.text}`,
-        );
-        Logger.log(`Anthropic response: ${result}`);
+        // Get response from Anthropic
+        let anthropicResponseData:any;
+        if ( `${ANTHROPIC_DEV}` === '') {
+          const {id: fileId}:{id:string}= await this.anthropicService.uploadTranscription(
+            transcriptionResultFileName,
+          );
+          const result = await this.anthropicService.getResponse(fileId);
+          Logger.log("Anthropic response", (result.content[0] as any).text);
+          anthropicResponseData = JSON.parse((result.content[0] as any).text);
+        } else {
+          Logger.warn(
+            `Using response from env ANTHROPIC_DEV. This is for development purposes only, and should not be used in production!`,
+          );
+          anthropicResponseData = JSON.parse(JSON.parse(fs.readFileSync(`anthropic_response_mock.json`, 'utf-8')).content[0].text);
+        }
+
+
+        // FFMPEG - extract clips
+        anthropicResponseData.clips.forEach((clip: any, index:number) => {
+          this.ffmpegService.extractClips(`${videoNameLocal}.${extension}`, clip, index);
+        });
+
+
+
+
+
+        // fs.writeFileSync(`anthropic_response_TEST.json`, JSON.parse(((result.content[0]) as any).text));
+
+
+        // this.ffmpegService.extractClips(JSON.parse(((result.content[0]) as any).text));
+
       }
     }
     return p;
