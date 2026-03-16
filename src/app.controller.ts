@@ -270,13 +270,18 @@ export class AppController {
 
 
         // FFMPEG - extract clips
-        let clipNames: string[] = [];
-        anthropicResponseData.clips.forEach((clip: any, index:number) => {
-          clipNames = [...clipNames, `clip_${index}`];
-          this.ffmpegService.extractClips(`${videoNameLocal}.${extension}`, clip, `clip_${index}`);
-        });
+        const clipNames: string[] = [];
+        for (const [index, clip] of anthropicResponseData.clips.entries()) {
+          const name = `clip_${index}`;
+          clipNames.push(name);
 
-        
+          await this.ffmpegService.extractClips(
+            `${videoNameLocal}.${extension}`,
+            clip,
+            name
+          );
+        }
+
         this.ytService.oauth2LoginPrompt();
 
 

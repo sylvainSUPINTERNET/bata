@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { spawn } from 'node:child_process';
 
 @Injectable()
@@ -20,44 +20,39 @@ export class FfmpegService {
   // with format tiktok
   extractClips(
     originalVideoFileName: string,
-    clip:{
+    clip: {
       title: string;
-      start_timestamp_ms:number;
-      end_timestamp_ms:number;
+      start_timestamp_ms: number;
+      end_timestamp_ms: number;
     },
-     clipName:string ) {
-    const ffmpeg = spawn('ffmpeg', [
-      '-y',
-      '-i',
-      `${originalVideoFileName}`,
-      '-ss',
-      `${this.msToTime(clip.start_timestamp_ms)}`,
-      '-to',
-      `${this.msToTime(clip.end_timestamp_ms)}`,
-      '-vf',
-      'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2',
-      `${clipName}.mp4`,
-    ]);
+    clipName: string
+  ) {
+    return new Promise<void>((resolve, reject) => {
 
-    ffmpeg.stdout.on('data', (data) => {
-      Logger.log(`ffmpeg output: ${data}`);
-    });
-    ffmpeg.stderr.on('data', (data) => {
-      Logger.error(`ffmpeg error: ${data}`);
-    });
-    
-    ffmpeg.on('close', (code) => {
-      Logger.log(`ffmpeg process exited with code ${code}`);
+      const ffmpeg = spawn("ffmpeg", [
+        "-y",
+        "-ss",
+        this.msToTime(clip.start_timestamp_ms),
+        "-i",
+        originalVideoFileName,
+        "-t",
+        this.msToTime(clip.end_timestamp_ms),
+        "-vf",
+        "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+        `${clipName}.mp4`
+      ]);
+
+      ffmpeg.stderr.on("data", (data) => {
+        console.log(data.toString());
+      });
+
+      ffmpeg.on("error", reject);
+
+      ffmpeg.on("close", (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`ffmpeg exited with code ${code}`));
+      });
+
     });
   }
-
-  // ffmpegHelp() {
-  //   const ffmpeg = spawn('ffmpeg', ['-h']);
-  //   ffmpeg.stdout.on('data', (data) => {
-  //     console.log(`ffmpeg help: ${data}`);
-  //   });
-  //   ffmpeg.stderr.on('data', (data) => {
-  //     console.error(`ffmpeg error: ${data}`);
-  //   });
-  // }
 }
