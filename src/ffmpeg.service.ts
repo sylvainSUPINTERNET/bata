@@ -27,7 +27,8 @@ export class FfmpegService {
     },
      clipName:string ) {
     const ffmpeg = spawn('ffmpeg', [
-            '-i',
+      '-y',
+      '-i',
       `${originalVideoFileName}`,
       '-ss',
       `${this.msToTime(clip.start_timestamp_ms)}`,
@@ -43,6 +44,10 @@ export class FfmpegService {
     });
     ffmpeg.stderr.on('data', (data) => {
       Logger.error(`ffmpeg error: ${data}`);
+    });
+    
+    ffmpeg.on('close', (code) => {
+      Logger.log(`ffmpeg process exited with code ${code}`);
     });
   }
 

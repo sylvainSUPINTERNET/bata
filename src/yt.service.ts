@@ -1,14 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import fs from 'node:fs';
-import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client.js';
-import {google, youtube_v3} from 'googleapis';
+import {google} from 'googleapis';
 
 @Injectable()
 export class YtService {
     constructor() {}
 
-
-    test() {
+    getOAuth2Client() {
         const OAuth2 = google.auth.OAuth2;
         const {web}:{web:Record<string, any>} = JSON.parse(fs.readFileSync('client_secret.json', 'utf8'));
         const {
@@ -22,6 +20,12 @@ export class YtService {
             client_secret,
             redirect_uris[0]
         )
+        return oauth2Client;
+    }
+
+
+    oauth2LoginPrompt() {
+        const oauth2Client = this.getOAuth2Client();
 
         const authUrl = oauth2Client.generateAuthUrl(
             {
@@ -33,8 +37,7 @@ export class YtService {
             }
         );
 
+        Logger.log('Authorize this app by visiting this url:', authUrl);
         console.log('Authorize this app by visiting this url:', authUrl);
-
-
     }
 }

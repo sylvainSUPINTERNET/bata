@@ -1,5 +1,6 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Res } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
+import type { Response } from 'express';
 
 import { AppService } from './app.service';
 import { isIsoDurationOver } from './utils';
@@ -11,7 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { AnthropicService } from './anthropic.service';
 import fs from 'node:fs';
 import { YtService } from './yt.service';
-
+import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
+import {google} from 'googleapis';
 @Controller()
 export class AppController {
   constructor(
@@ -24,6 +26,145 @@ export class AppController {
     private readonly ytService: YtService
   ) {}
 
+    @Get('/oauth2/google/callback')
+    async googleOAuth2Callback(@Query('code') code: string, @Res() res: Response) {
+      try {
+          const oauth2Client = this.ytService.getOAuth2Client();
+          const resp:GetTokenResponse = await oauth2Client.getToken(code);
+          const {
+              access_token,
+              refresh_token,
+              scope,
+              token_type,
+              expiry_date
+          } = resp.tokens;
+
+          oauth2Client.setCredentials({
+              access_token,
+              refresh_token,
+              scope,
+              token_type,
+              expiry_date
+          });
+
+          const service = google.youtube('v3');
+          const videoMetadata = {
+              snippet: {
+                  title: 'Ma vidéo uploadée via API ' + randomUUID(),
+                  description: 'Description my first video',
+                  tags: ['nodejs', 'youtube', 'api'],
+                  categoryId: '22', // Catégorie "People & Blogs"
+                  defaultLanguage: 'fr',
+                  defaultAudioLanguage: 'fr'
+              },
+              status: {
+                  privacyStatus: 'private', // 'public', 'unlisted', 'private'
+                  selfDeclaredMadeForKids: false
+              }
+          };
+
+        const response = await service.videos.insert({
+            auth: oauth2Client,
+            part: ['snippet', 'status'],
+            requestBody: videoMetadata,
+            media: {
+                body: fs.createReadStream('clip_1.mp4') // TODO: replace with actual clip name 
+            }
+        });
+
+        Logger.log('Video uploaded to YouTube with ID:', response);
+
+        return res.status(200).send({
+          code
+        });
+      } catch ( error ) {
+        return res.status(500).send({
+          error: 'Failed to get access token',
+          details: error instanceof Error ? error.message : error
+        });
+      }
+    }
+//   app.get('/oauth2/google/callback', async (req, res, next) => {  
+    
+//     try {
+//         const resp:GetTokenResponse = await oauth2Client.getToken(req.query.code as string);
+//         const {
+//             access_token,
+//             refresh_token,
+//             scope,
+//             token_type,
+//             expiry_date
+//         } = resp.tokens;
+
+//         oauth2Client.setCredentials({
+//             access_token,
+//             refresh_token,
+//             scope,
+//             token_type,
+//             expiry_date
+//         });
+        
+        
+//         const service = google.youtube('v3');
+//         // service.channels.list({
+//         //     auth: oauth2Client,
+//         //     /* @ts-ignore */
+//         //     part: 'snippet,contentDetails,statistics',
+//         //     forUsername: 'GoogleDevelopers'
+//         // }, function(err:any, response:any) {
+//         //     if (err) {
+//         //     console.log('The API returned an error: ' + err);
+//         //     return;
+//         //     }
+//         //     var channels = response.data.items;
+//         //     if (channels.length == 0) {
+//         //     console.log('No channel found.');
+//         //     } else {
+//         //     console.log('This channel\'s ID is %s. Its title is \'%s\', and ' +
+//         //                 'it has %s views.',
+//         //                 channels[0].id,
+//         //                 channels[0].snippet.title,
+//         //                 channels[0].statistics.viewCount);
+//         //     }
+//         // });
+
+//         const videoMetadata = {
+//             snippet: {
+//                 title: 'Ma vidéo uploadée via API',
+//                 description: 'Description my first video',
+//                 tags: ['nodejs', 'youtube', 'api'],
+//                 categoryId: '22', // Catégorie "People & Blogs"
+//                 defaultLanguage: 'fr',
+//                 defaultAudioLanguage: 'fr'
+//             },
+//             status: {
+//                 privacyStatus: 'private', // 'public', 'unlisted', 'private'
+//                 selfDeclaredMadeForKids: false
+//             }
+//         };
+        
+//         const response = await service.videos.insert({
+//             auth: oauth2Client,
+//             part: ['snippet', 'status'],
+//             requestBody: videoMetadata,
+//             media: {
+//                 body: fs.createReadStream('output.mp4') // Chemin vers votre fichier vidéo
+//             }
+//         });
+
+//         res.status(200).send(
+//             {...resp.tokens}
+//         );
+        
+//     } catch ( err:any ) {
+//         res.status(500).send({
+//             error: 'Failed to get access token',
+//             details: err.message || err
+//         });
+//     }
+
+// });
+
   @Post('ytb-webhook')
   async ytbWebhook(@Body() xml: string) {
     const apiKey = this.configService.get<string>('YOUTUBE_API_KEY');
@@ -32,7 +173,6 @@ export class AppController {
     const ASSEMBLY_AI_DEV = this.configService.get<string>('ASSEMBLY_AI_DEV');
     const ANTHROPIC_DEV = this.configService.get<string>('ANTHROPIC_DEV');
 
-    this.ytService.test();
     
     
     const p = await parseStringPromise(xml);
@@ -57,6 +197,7 @@ export class AppController {
         `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${latestVideos[0]['yt:videoId'][0]}&key=${apiKey}`,
       );
       const json = await data.json();
+
 
       let acceptVideo = false;
       for (const item of json.items) {
@@ -134,6 +275,9 @@ export class AppController {
           clipNames = [...clipNames, `clip_${index}`];
           this.ffmpegService.extractClips(`${videoNameLocal}.${extension}`, clip, `clip_${index}`);
         });
+
+        
+        this.ytService.oauth2LoginPrompt();
 
 
         // Send to youtube
