@@ -29,6 +29,20 @@ export class FfmpegService {
   ) {
     return new Promise<void>((resolve, reject) => {
 
+      // const ffmpeg = spawn("ffmpeg", [
+      //   "-y",
+      //   "-ss",
+      //   this.msToTime(clip.start_timestamp_ms),
+      //   "-i",
+      //   originalVideoFileName,
+      //   "-t",
+      //   this.msToTime(clip.end_timestamp_ms),
+      //   "-vf",
+      //   "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+      //   `${clipName}.mp4`
+      // ]);
+
+
       const ffmpeg = spawn("ffmpeg", [
         "-y",
         "-ss",
@@ -36,9 +50,9 @@ export class FfmpegService {
         "-i",
         originalVideoFileName,
         "-t",
-        this.msToTime(clip.end_timestamp_ms),
-        "-vf",
-        "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2",
+        this.msToTime(clip.end_timestamp_ms - clip.start_timestamp_ms),
+        "-filter_complex",
+        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,gblur=sigma=20[bg];[0:v]scale=iw*1.5:ih*1.5[zoomed];[zoomed]scale=1080:1920:force_original_aspect_ratio=decrease[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2",
         `${clipName}.mp4`
       ]);
 
