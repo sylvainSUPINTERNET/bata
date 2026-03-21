@@ -14,7 +14,8 @@ import fs from 'node:fs';
 import { YtService } from './yt.service';
 import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import {google} from 'googleapis';
-import { bot } from './main';
+import { TelegramBot } from "./telegram.bot";
+
 @Controller()
 export class AppController {
   constructor(
@@ -24,12 +25,13 @@ export class AppController {
     private readonly assemblyAiService: AssemblyAiService,
     private configService: ConfigService,
     private readonly anthropicService: AnthropicService,
-    private readonly ytService: YtService
+    private readonly ytService: YtService,
+    private readonly telegramBot: TelegramBot
   ) {}
 
   @Get("/test")
   async test() {
-    const d = await bot.api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Hello world from NestJS!");
+    const d = await this.telegramBot.getBot().api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Hello world from NestJS!");
     console.log("Message sent with id", d.message_id);
     return "ok";
   }
@@ -210,7 +212,9 @@ export class AppController {
           );
         }
 
-        this.ytService.oauth2LoginPrompt();
+        await this.ytService.oauth2LoginPrompt();
+
+
 
 
         // Send to youtube

@@ -1,10 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import fs from 'node:fs';
 import {google} from 'googleapis';
+import { TelegramBot } from "./telegram.bot";
 
 @Injectable()
 export class YtService {
-    constructor() {}
+    constructor(private readonly telegramBot:TelegramBot) {}
 
     getOAuth2Client() {
         const OAuth2 = google.auth.OAuth2;
@@ -24,7 +25,7 @@ export class YtService {
     }
 
 
-    oauth2LoginPrompt() {
+    async oauth2LoginPrompt() {
         const oauth2Client = this.getOAuth2Client();
 
         const authUrl = oauth2Client.generateAuthUrl(
@@ -39,5 +40,7 @@ export class YtService {
 
         Logger.log('Authorize this app by visiting this url:', authUrl);
         console.log('Authorize this app by visiting this url:', authUrl);
+
+        await this.telegramBot.getBot().api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, `${authUrl}`);
     }
 }

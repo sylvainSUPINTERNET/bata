@@ -7,6 +7,7 @@ import { FfmpegService } from './ffmpeg.service';
 import { AssemblyAiService } from './assemblyAi.service';
 import { AnthropicService } from './anthropic.service';
 import { YtService } from './yt.service';
+import { TelegramBot } from './telegram.bot';
 
 @Module({
   imports: [
@@ -21,7 +22,11 @@ import { YtService } from './yt.service';
     FfmpegService,
     AssemblyAiService,
     AnthropicService,
-    YtService
+    YtService,
+    TelegramBot
   ],
+  exports: [
+    TelegramBot
+  ]
 })
 export class AppModule {}

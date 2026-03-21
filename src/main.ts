@@ -1,10 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
-import { Bot } from "grammy"
-
-
-export const bot = new Bot(process.env.TELEGRAM_TOKEN!);
+import { TelegramBot } from './telegram.bot';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,7 +10,11 @@ async function bootstrap() {
   app.use(bodyParser.json());
   app.use('/ytb-webhook', bodyParser.text({ type: '*/*' }));
 
-  bot.start();
+  const TelegramBotInjected = app.get(TelegramBot);
+  
+  TelegramBotInjected.getBot().start().catch( (err) => {
+    console.error('Error starting bot:', err);
+  });
 
   // bot.on("message:text", async (ctx) => {
   //   console.log("Received message:", ctx.message.text);
@@ -22,7 +23,7 @@ async function bootstrap() {
     
   // });
 
-  bot.catch( (err) => {
+  TelegramBotInjected.getBot().catch( (err) => {
     console.error('Error in bot:', err);
   })
 
