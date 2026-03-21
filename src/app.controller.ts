@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import { YtService } from './yt.service';
 import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import {google} from 'googleapis';
+import { bot } from './main';
 @Controller()
 export class AppController {
   constructor(
@@ -26,144 +27,71 @@ export class AppController {
     private readonly ytService: YtService
   ) {}
 
-    @Get('/oauth2/google/callback')
-    async googleOAuth2Callback(@Query('code') code: string, @Res() res: Response) {
-      try {
-          const oauth2Client = this.ytService.getOAuth2Client();
-          const resp:GetTokenResponse = await oauth2Client.getToken(code);
-          const {
-              access_token,
-              refresh_token,
-              scope,
-              token_type,
-              expiry_date
-          } = resp.tokens;
+  @Get("/test")
+  async test() {
+    const d = await bot.api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Hello world from NestJS!");
+    console.log("Message sent with id", d.message_id);
+    return "ok";
+  }
 
-          oauth2Client.setCredentials({
-              access_token,
-              refresh_token,
-              scope,
-              token_type,
-              expiry_date
-          });
+  @Get('/oauth2/google/callback')
+  async googleOAuth2Callback(@Query('code') code: string, @Res() res: Response) {
+    try {
+        const oauth2Client = this.ytService.getOAuth2Client();
+        const resp:GetTokenResponse = await oauth2Client.getToken(code);
+        const {
+            access_token,
+            refresh_token,
+            scope,
+            token_type,
+            expiry_date
+        } = resp.tokens;
 
-          const service = google.youtube('v3');
-          const videoMetadata = {
-              snippet: {
-                  title: 'Ma vidéo uploadée via API ' + randomUUID(),
-                  description: 'Description my first video',
-                  tags: ['nodejs', 'youtube', 'api'],
-                  categoryId: '22', // Catégorie "People & Blogs"
-                  defaultLanguage: 'fr',
-                  defaultAudioLanguage: 'fr'
-              },
-              status: {
-                  privacyStatus: 'private', // 'public', 'unlisted', 'private'
-                  selfDeclaredMadeForKids: false
-              }
-          };
+        oauth2Client.setCredentials({
+            access_token,
+            refresh_token,
+            scope,
+            token_type,
+            expiry_date
+        });
 
-        const response = await service.videos.insert({
-            auth: oauth2Client,
-            part: ['snippet', 'status'],
-            requestBody: videoMetadata,
-            media: {
-                body: fs.createReadStream('clip_1.mp4') // TODO: replace with actual clip name 
+        const service = google.youtube('v3');
+        const videoMetadata = {
+            snippet: {
+                title: 'Ma vidéo uploadée via API ' + randomUUID(),
+                description: 'Description my first video',
+                tags: ['nodejs', 'youtube', 'api'],
+                categoryId: '22', // Catégorie "People & Blogs"
+                defaultLanguage: 'fr',
+                defaultAudioLanguage: 'fr'
+            },
+            status: {
+                privacyStatus: 'private', // 'public', 'unlisted', 'private'
+                selfDeclaredMadeForKids: false
             }
-        });
+        };
 
-        Logger.log('Video uploaded to YouTube with ID:', response);
+      const response = await service.videos.insert({
+          auth: oauth2Client,
+          part: ['snippet', 'status'],
+          requestBody: videoMetadata,
+          media: {
+              body: fs.createReadStream('clip_1.mp4') // TODO: replace with actual clip name 
+          }
+      });
 
-        return res.status(200).send({
-          code
-        });
-      } catch ( error ) {
-        return res.status(500).send({
-          error: 'Failed to get access token',
-          details: error instanceof Error ? error.message : error
-        });
-      }
+      Logger.log('Video uploaded to YouTube with ID:', response);
+
+      return res.status(200).send({
+        code
+      });
+    } catch ( error ) {
+      return res.status(500).send({
+        error: 'Failed to get access token',
+        details: error instanceof Error ? error.message : error
+      });
     }
-//   app.get('/oauth2/google/callback', async (req, res, next) => {  
-    
-//     try {
-//         const resp:GetTokenResponse = await oauth2Client.getToken(req.query.code as string);
-//         const {
-//             access_token,
-//             refresh_token,
-//             scope,
-//             token_type,
-//             expiry_date
-//         } = resp.tokens;
-
-//         oauth2Client.setCredentials({
-//             access_token,
-//             refresh_token,
-//             scope,
-//             token_type,
-//             expiry_date
-//         });
-        
-        
-//         const service = google.youtube('v3');
-//         // service.channels.list({
-//         //     auth: oauth2Client,
-//         //     /* @ts-ignore */
-//         //     part: 'snippet,contentDetails,statistics',
-//         //     forUsername: 'GoogleDevelopers'
-//         // }, function(err:any, response:any) {
-//         //     if (err) {
-//         //     console.log('The API returned an error: ' + err);
-//         //     return;
-//         //     }
-//         //     var channels = response.data.items;
-//         //     if (channels.length == 0) {
-//         //     console.log('No channel found.');
-//         //     } else {
-//         //     console.log('This channel\'s ID is %s. Its title is \'%s\', and ' +
-//         //                 'it has %s views.',
-//         //                 channels[0].id,
-//         //                 channels[0].snippet.title,
-//         //                 channels[0].statistics.viewCount);
-//         //     }
-//         // });
-
-//         const videoMetadata = {
-//             snippet: {
-//                 title: 'Ma vidéo uploadée via API',
-//                 description: 'Description my first video',
-//                 tags: ['nodejs', 'youtube', 'api'],
-//                 categoryId: '22', // Catégorie "People & Blogs"
-//                 defaultLanguage: 'fr',
-//                 defaultAudioLanguage: 'fr'
-//             },
-//             status: {
-//                 privacyStatus: 'private', // 'public', 'unlisted', 'private'
-//                 selfDeclaredMadeForKids: false
-//             }
-//         };
-        
-//         const response = await service.videos.insert({
-//             auth: oauth2Client,
-//             part: ['snippet', 'status'],
-//             requestBody: videoMetadata,
-//             media: {
-//                 body: fs.createReadStream('output.mp4') // Chemin vers votre fichier vidéo
-//             }
-//         });
-
-//         res.status(200).send(
-//             {...resp.tokens}
-//         );
-        
-//     } catch ( err:any ) {
-//         res.status(500).send({
-//             error: 'Failed to get access token',
-//             details: err.message || err
-//         });
-//     }
-
-// });
+  }
 
   @Post('ytb-webhook')
   async ytbWebhook(@Body() xml: string) {
