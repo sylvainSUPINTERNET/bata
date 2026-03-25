@@ -18,12 +18,9 @@ import { TelegramBot } from "./telegram.bot";
 import { InlineKeyboard, InputFile } from 'grammy';
 
 @Controller()
-export class AppController implements OnModuleInit, OnModuleDestroy {
+export class AppController {
 
   videoInProgress:Map<string, Set<string>> = new Map();
-  
-  
-  bot:any;
 
   constructor(
     private readonly appService: AppService,
@@ -36,23 +33,6 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
     private readonly telegramBot: TelegramBot
   ) {}
   
-  onModuleInit() {
-    this.bot = this.telegramBot.getBot();
-
-    this.bot.callbackQuery("video_1", async (ctx) => {
-      console.log("CLICK DETECTED");
-      await ctx.answerCallbackQuery({
-        text: "Tu as choisi la vidéo 1 ! 🎬",
-      });
-    });
-    this.bot.start();
-  }
-
-  onModuleDestroy() {
-    Logger.log("Stopping bot...");
-    this.bot.stop();
-  }
-
 
   @Get("/test")
   async test() {
@@ -77,7 +57,7 @@ export class AppController implements OnModuleInit, OnModuleDestroy {
     const keyboard = new InlineKeyboard()
       .text("🎬 Choisir cette vidéo", "video_1");
 
-    await this.bot.api.sendVideo(
+    await this.telegramBot.getBot().api.sendVideo(
       process.env.CHAT_ID_LA_VOIX_LIBRE!,
       new InputFile(fs.createReadStream("clip_1.mp4")),
       {
