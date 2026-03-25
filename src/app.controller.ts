@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Logger, OnModuleDestroy, OnModuleInit, Post, Query, Res } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
 import type { Response } from 'express';
 
@@ -15,9 +15,16 @@ import { YtService } from './yt.service';
 import { GetTokenResponse } from 'google-auth-library/build/src/auth/oauth2client';
 import {google} from 'googleapis';
 import { TelegramBot } from "./telegram.bot";
+import { InlineKeyboard, InputFile } from 'grammy';
 
 @Controller()
-export class AppController {
+export class AppController implements OnModuleInit, OnModuleDestroy {
+
+  videoInProgress:Map<string, Set<string>> = new Map();
+  
+  
+  bot:any;
+
   constructor(
     private readonly appService: AppService,
     private readonly ytDlpService: YtDlpService,
@@ -28,11 +35,57 @@ export class AppController {
     private readonly ytService: YtService,
     private readonly telegramBot: TelegramBot
   ) {}
+  
+  onModuleInit() {
+    this.bot = this.telegramBot.getBot();
+
+    this.bot.callbackQuery("video_1", async (ctx) => {
+      console.log("CLICK DETECTED");
+      await ctx.answerCallbackQuery({
+        text: "Tu as choisi la vidéo 1 ! 🎬",
+      });
+    });
+    this.bot.start();
+  }
+
+  onModuleDestroy() {
+    Logger.log("Stopping bot...");
+    this.bot.stop();
+  }
+
 
   @Get("/test")
   async test() {
-    const d = await this.telegramBot.getBot().api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Hello world from NestJS!");
-    console.log("Message sent with id", d.message_id);
+    // const d = await this.bot.api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Hello world from NestJS!");
+    // console.log("Message sent with id", d.message_id);    
+
+    // const keyboard = new InlineKeyboard()
+    // .text("🎬 Vidéo 1", "video_1")
+    // .text("🎬 Vidéo 2", "video_2")
+    // .text("🎬 Vidéo 3", "video_3");
+
+    // await this.bot.api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, "Choisis une vidéo 👇", {
+    //   reply_markup: keyboard,
+    // });
+
+    // await this.bot.api.sendVideo(process.env.CHAT_ID_LA_VOIX_LIBRE!, new InputFile(fs.createReadStream("clip_1.mp4")), {
+    //   caption: "Voici le clip extrait de la vidéo YouTube ! 🎬", 
+    //    // button
+    //   supports_streaming: true
+    // });
+
+    const keyboard = new InlineKeyboard()
+      .text("🎬 Choisir cette vidéo", "video_1");
+
+    await this.bot.api.sendVideo(
+      process.env.CHAT_ID_LA_VOIX_LIBRE!,
+      new InputFile(fs.createReadStream("clip_1.mp4")),
+      {
+        caption: "Voici le clip extrait de la vidéo YouTube ! 🎬",
+        supports_streaming: true,
+        reply_markup: keyboard, // 👈 ici
+      }
+    );
     return "ok";
   }
 
