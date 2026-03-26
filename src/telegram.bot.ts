@@ -15,7 +15,7 @@ export class TelegramBot implements OnModuleInit, OnModuleDestroy {
     return this.bot;
   }
 
-  async onModuleInit() {
+  onModuleInit() {
     if (this.started) return;
 
     
@@ -23,8 +23,7 @@ export class TelegramBot implements OnModuleInit, OnModuleDestroy {
     this.bot.callbackQuery(/^publish_.+$/, async (ctx) => {
       Logger.log("telegram [publish] - callback query", ctx.callbackQuery.data);
       
-      
-       await ctx.reply("Are you sure ?", {
+       await ctx.reply(`Do you want to publish : ${ctx.callbackQuery.data.split("_")[1]}`, {
             reply_markup: {
             inline_keyboard: [
                 [
@@ -55,7 +54,10 @@ export class TelegramBot implements OnModuleInit, OnModuleDestroy {
     //     await ctx.answerCallbackQuery();
     // });
     if ( !this.bot.isRunning() ) {
-        await this.bot.start();
+        this.bot.start().catch((err) => {
+          this.started = false;
+          Logger.error('Telegram bot polling error:', err);
+        });
         this.started = true;
     }
   }
