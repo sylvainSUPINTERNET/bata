@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, OnModuleDestroy, OnModuleInit, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Res } from '@nestjs/common';
 import { parseStringPromise } from 'xml2js';
 import type { Response } from 'express';
 
@@ -70,8 +70,12 @@ export class AppController {
   }
 
   @Get('/oauth2/google/callback')
-  async googleOAuth2Callback(@Query('code') code: string, @Res() res: Response) {
+  async googleOAuth2Callback(@Query('code') code: string, @Query('state') state:string, @Res() res: Response) {
     try {
+
+      const {videoIds} = JSON.parse(decodeURIComponent(state));
+      Logger.log('Received OAuth2 callback with state:', videoIds);
+
         const oauth2Client = this.ytService.getOAuth2Client();
         const resp:GetTokenResponse = await oauth2Client.getToken(code);
         const {
@@ -90,32 +94,50 @@ export class AppController {
             expiry_date
         });
 
-        const service = google.youtube('v3');
-        const videoMetadata = {
-            snippet: {
-                title: 'Ma vidéo uploadée via API ' + randomUUID(),
-                description: 'Description my first video',
-                tags: ['nodejs', 'youtube', 'api'],
-                categoryId: '22', // Catégorie "People & Blogs"
-                defaultLanguage: 'fr',
-                defaultAudioLanguage: 'fr'
-            },
-            status: {
-                privacyStatus: 'private', // 'public', 'unlisted', 'private'
-                selfDeclaredMadeForKids: false
-            }
-        };
 
-      const response = await service.videos.insert({
-          auth: oauth2Client,
-          part: ['snippet', 'status'],
-          requestBody: videoMetadata,
-          media: {
-              body: fs.createReadStream('clip_1.mp4') // TODO: replace with actual clip name 
-          }
-      });
+        for ( const videoId of videoIds ) {
 
-      Logger.log('Video uploaded to YouTube with ID:', response);
+          // use publish_ in the callback to differenciate from other potential callbacks, and videoId to know which video to publish
+            const telegramVideoId = `publish_${videoId}`;
+            const keyboard = new InlineKeyboard(); 
+            keyboard.text(`🎬 Publier ${videoId} sur YouTube`, `${telegramVideoId}`)
+
+            await this.telegramBot.getBot().api.sendVideo(
+              process.env.CHAT_ID_LA_VOIX_LIBRE!,
+              new InputFile(fs.createReadStream(`${videoId}.mp4`)),
+              {
+                caption: `Preview for ${videoId}`,
+                supports_streaming: true,
+                reply_markup: keyboard
+              }
+            );
+        }
+      //   const service = google.youtube('v3');
+      //   const videoMetadata = {
+      //       snippet: {
+      //           title: 'Ma vidéo uploadée via API ' + randomUUID(),
+      //           description: 'Description my first video',
+      //           tags: ['nodejs', 'youtube', 'api'],
+      //           categoryId: '22', // Catégorie "People & Blogs"
+      //           defaultLanguage: 'fr',
+      //           defaultAudioLanguage: 'fr'
+      //       },
+      //       status: {
+      //           privacyStatus: 'private', // 'public', 'unlisted', 'private'
+      //           selfDeclaredMadeForKids: false
+      //       }
+      //   };
+
+      // const response = await service.videos.insert({
+      //     auth: oauth2Client,
+      //     part: ['snippet', 'status'],
+      //     requestBody: videoMetadata,
+      //     media: {
+      //         body: fs.createReadStream('clip_1.mp4') // TODO: replace with actual clip name 
+      //     }
+      // });
+
+      // Logger.log('Video uploaded to YouTube with ID:', response);
 
       return res.status(200).send({
         code
@@ -245,7 +267,9 @@ export class AppController {
           );
         }
 
-        await this.ytService.oauth2LoginPrompt();
+        await this.ytService.oauth2LoginPrompt({
+          videoIds: clipNames
+        });
 
 
 

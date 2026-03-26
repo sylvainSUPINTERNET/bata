@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Bot } from "grammy";
 
@@ -18,12 +18,42 @@ export class TelegramBot implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     if (this.started) return;
 
-    this.bot.callbackQuery("video_1", async (ctx) => {
-      console.log("CLICK DETECTED");
-      await ctx.answerCallbackQuery({
-        text: "Tu as choisi la vidéo 1 ! 🎬",
-      });
+    
+    // // can also use regex: this.bot.callbackQuery(/video_\d+/, async (ctx) => {
+    this.bot.callbackQuery(/^publish_.+$/, async (ctx) => {
+      Logger.log("telegram [publish] - callback query", ctx.callbackQuery.data);
+      
+      
+       await ctx.reply("Are you sure ?", {
+            reply_markup: {
+            inline_keyboard: [
+                [
+                { text: "✅ Yes", callback_data: `confirm_publish_${ctx.callbackQuery.data}` },
+                { text: "❌ Epstein", callback_data: "cancel" }
+                ]
+            ]
+            }
+        });
     });
+
+    this.bot.callbackQuery(/^confirm_publish_.+$/, async (ctx) => {
+      Logger.log("telegram [confirm_publish] - callback query", ctx.callbackQuery.data);
+
+        await ctx.answerCallbackQuery({
+            text: `Processing upload for ${ctx.callbackQuery.data}`,
+            show_alert: true,
+        });
+        
+        // TODO upload to yt and send link to user
+
+    });
+    // this.bot.on("callback_query:data", async (ctx) => {
+    //     const data = ctx.callbackQuery.data;
+
+    //     console.log("CLICK:", data);
+
+    //     await ctx.answerCallbackQuery();
+    // });
     if ( !this.bot.isRunning() ) {
         await this.bot.start();
         this.started = true;

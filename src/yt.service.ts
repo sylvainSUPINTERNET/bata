@@ -25,7 +25,7 @@ export class YtService {
     }
 
 
-    async oauth2LoginPrompt() {
+    async oauth2LoginPrompt({videoIds}: {videoIds: string[]}) {
         const oauth2Client = this.getOAuth2Client();
 
         const authUrl = oauth2Client.generateAuthUrl(
@@ -34,12 +34,12 @@ export class YtService {
                 scope: [
                         'https://www.googleapis.com/auth/youtube.upload',
                         'https://www.googleapis.com/auth/youtube.readonly'
-                    ]
+                    ],
+                state: encodeURIComponent(JSON.stringify({videoIds}))
             }
         );
 
         Logger.log('Authorize this app by visiting this url:', authUrl);
-        console.log('Authorize this app by visiting this url:', authUrl);
 
         await this.telegramBot.getBot().api.sendMessage(process.env.CHAT_ID_LA_VOIX_LIBRE!, `${authUrl}`);
     }
